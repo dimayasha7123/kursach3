@@ -62,7 +62,7 @@ def create():
         return jsonify(ok=False, error="bad request")
     model = get_model()
     probs_count = current_app.config['COUNT_OF_PROBS']
-    theme_ids = model.analyse(content["text"], probs_count)
+    theme_ids = model.analyse_theme(content["text"], probs_count)
 
     query = """
     insert into appeal (text)
@@ -99,14 +99,64 @@ def complement(id: int):
 
 @bp.route('/<int:id>/commit/<int:theme_id>', methods=["PUT"])
 def commit(id: int, theme_id: int):
-    pass
+    db = get_db()
+    cur = db.cursor()
+    query = """
+    select * from appeal where id = %s;
+    """
+    cur.execute(query, (id,))
+    appeal = cur.fetchone()
+    cur.close()
+    if not appeal:
+        return jsonify(ok=False, error="bad request, no such appeal")
+
+    query = """
+    update appeal set confirmed_theme = %s where id = %s;
+    """
+    cur = db.cursor()
+    cur.execute(query, (theme_id, id,))
+    cur.close()
+    return get(id)
 
 
 @bp.route('/<int:id>/get_categories', methods=["GET"])
 def get_categories(id: int):
-    pass
+    db = get_db()
+    cur = db.cursor()
+    query = """
+    select text from appeal where id = %s;
+    """
+    cur.execute(query, (id,))
+    appeal_text = cur.fetchone()
+    cur.close()
+    if not appeal_text:
+        return jsonify(ok=False, error="bad request, no such appeal")
+    appeal_text = appeal_text[0]
+
+    model = get_model()
+    cats_ids = model.analyse_cat(appeal_text)
+
+    cur = db.cursor()
+    query = """
+    select * from category;
+    """
+    cur.execute(query)
+    cats_tuples = cur.fetchall()
+    cur.close()
+
+    cats = {}
+    for t in cats_tuples:
+        cats[t[0]] = t[1]
+
+    resp = []
+    for id in cats_ids:
+        resp.append({"id": id, "title": cats[id]})
+
+    # TODO убрать id и text
+    return jsonify(ok=True, id=id, text=appeal_text, categories=resp)
+    
 
 
 @bp.route('/<int:id>/get_themes/<int:cat_id>', methods=["GET"])
 def get_themes(id: int, cat_id: int):
-    pass
+    
