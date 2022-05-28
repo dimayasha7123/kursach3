@@ -6,7 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from flaskr.db import get_db
 
-bp = Blueprint('appeal', __name__, url_prefix='/appeal')
+bp = Blueprint('appeal', __name__, url_prefix='/api/v1/appeal')
 
 @bp.route('/<int:id>', methods=["GET"])
 def get(id: int):
