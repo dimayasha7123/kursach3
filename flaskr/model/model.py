@@ -44,7 +44,6 @@ class Model:
 
     def analyse_theme(self, text: str, detailed_text:str = None, probs_count=3):
         probs = self.model_themes.predict_proba([text])[0]
-        print(detailed_text)
         if detailed_text:
             d_probs = self.model_themes.predict_proba([detailed_text])[0]
             probs = probs * d_probs

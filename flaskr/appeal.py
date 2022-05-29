@@ -151,7 +151,6 @@ def complement(id: int):
     return get(id)
 
 
-
 @bp.route('/<int:id>/commit/<int:theme_id>', methods=["PUT"])
 def commit(id: int, theme_id: int):
     db = get_db()
@@ -229,7 +228,7 @@ def get_themes(id: int, cat_id: int):
     appeal_text = appeal_text[0]
 
     model = get_model()
-    theme_ids = model.analyse_theme(appeal_text, -1)
+    theme_ids = model.analyse_theme(appeal_text, probs_count=-1)
 
     cur = db.cursor()
     query = """
