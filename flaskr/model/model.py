@@ -1,3 +1,4 @@
+from tkinter.messagebox import NO
 import joblib
 import psycopg2
 
@@ -41,14 +42,30 @@ class Model:
         self.theme_ids = theme_ids
         self.cats_ids = cats_id
 
-    def analyse_theme(self, text: str, probs_count=3):
-        probs = self.model_themes.predict_proba([text])
-        most_likely_probs = [self.theme_ids[id]
-                             for id in probs.argsort().tolist()[0][-probs_count:][::-1]]
+    def analyse_theme(self, text: str, detailed_text:str = None, probs_count=3):
+        probs = self.model_themes.predict_proba([text])[0]
+        print(detailed_text)
+        if detailed_text:
+            d_probs = self.model_themes.predict_proba([detailed_text])[0]
+            probs = probs * d_probs
+
+        most_likely_probs = None
+        if probs_count <= 0:
+            most_likely_probs = [self.theme_ids[id]
+                             for id in probs.argsort().tolist()[:][::-1]]
+        else:
+            most_likely_probs = [self.theme_ids[id]
+                             for id in probs.argsort().tolist()[-probs_count:][::-1]]
+
         return most_likely_probs
 
-    def analyse_cat(self, text: str):
-        probs = self.model_cats.predict_proba([text])
+    def analyse_cat(self, text: str, detailed_text:str = None):
+        probs = self.model_cats.predict_proba([text])[0]
+
+        if detailed_text:
+            d_probs = self.model_cats.predict_proba([detailed_text])[0]
+            probs = probs * d_probs
+
         most_likely_probs = [self.cats_ids[id]
-                             for id in probs.argsort().tolist()[0][:][::-1]]
+                             for id in probs.argsort().tolist()[:][::-1]]
         return most_likely_probs

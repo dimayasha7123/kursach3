@@ -62,7 +62,7 @@ def create():
         return jsonify(ok=False, error="bad request")
     model = get_model()
     probs_count = current_app.config['COUNT_OF_PROBS']
-    theme_ids = model.analyse_theme(content["text"], probs_count)
+    theme_ids = model.analyse_theme(content["text"], probs_count=probs_count)
 
     query = """
     insert into appeal (text)
@@ -87,14 +87,69 @@ def create():
     cur.close()
 
     db.commit()
-    print("go to get")
-    print(id)
+
     return get(id)
 
 
 @bp.route('/<int:id>/complement', methods=["PUT"])
 def complement(id: int):
-    pass
+    content = request.get_json()
+    if not content:
+        return jsonify(ok=False, error="empty request")
+    if not all(key in content for key in ['detailed_text']):
+        return jsonify(ok=False, error="bad request")
+    det_text = content["detailed_text"]
+
+    query = """
+    select * from appeal where id = %s;
+    """
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(query, (id,))
+    appeal = cur.fetchone()
+    cur.close()
+
+    if not appeal:
+        return jsonify(ok=False, error="bad request")
+
+    model = get_model()
+    probs_count = current_app.config['COUNT_OF_PROBS']
+    theme_ids = model.analyse_theme(appeal[1], det_text, probs_count)
+
+    query = """
+    update appeal set detailed_text = %s where id = %s;
+    """
+    cur = db.cursor()
+    cur.execute(query, (det_text, id,))
+    cur.close()
+
+    query = """
+    delete from appeal_has_theme where appeal_id = %s;
+    """
+
+    db.commit()
+
+    cur = db.cursor()
+    cur.execute(query, (id,))
+    cur.close()
+
+    query = """
+    insert into appeal_has_theme (order_number, appeal_id, theme_id)
+    values  (%s, %s, %s);
+    """
+
+    values = []
+    for i in range(probs_count):
+        values.append((i, id, theme_ids[i]))
+    cur = db.cursor()
+    cur.executemany(query, values)
+    cur.close()
+
+    db.commit()
+
+    return get(id)
+
 
 
 @bp.route('/<int:id>/commit/<int:theme_id>', methods=["PUT"])
@@ -116,6 +171,9 @@ def commit(id: int, theme_id: int):
     cur = db.cursor()
     cur.execute(query, (theme_id, id,))
     cur.close()
+
+    db.commit()
+
     return get(id)
 
 
@@ -154,9 +212,41 @@ def get_categories(id: int):
 
     # TODO убрать id и text
     return jsonify(ok=True, id=id, text=appeal_text, categories=resp)
-    
 
 
 @bp.route('/<int:id>/get_themes/<int:cat_id>', methods=["GET"])
 def get_themes(id: int, cat_id: int):
-    
+    db = get_db()
+    cur = db.cursor()
+    query = """
+    select text from appeal where id = %s;
+    """
+    cur.execute(query, (id,))
+    appeal_text = cur.fetchone()
+    cur.close()
+    if not appeal_text:
+        return jsonify(ok=False, error="bad request, no such appeal")
+    appeal_text = appeal_text[0]
+
+    model = get_model()
+    theme_ids = model.analyse_theme(appeal_text, -1)
+
+    cur = db.cursor()
+    query = """
+    select * from theme;
+    """
+    cur.execute(query)
+    themes_tuples = cur.fetchall()
+    cur.close()
+
+    themes = {}
+    for t in themes_tuples:
+        themes[t[0]] = (t[1], t[2])
+
+    resp = []
+    for id in theme_ids:
+        if themes[id][0] == cat_id:
+            resp.append({"id": id, "title": themes[id][1]})
+
+    # TODO убрать id и text
+    return jsonify(ok=True, id=id, text=appeal_text, themes=resp)
