@@ -7,7 +7,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev7123',
-        DSN='user=postgres password=postgres7123 dbname=active_citizen sslmode=disable',
+        DSN='host=db user=postgres password=postgres7123 dbname=active_citizen sslmode=disable',
         COUNT_OF_PROBS = 3,
         JSON_SORT_KEYS = False
     )

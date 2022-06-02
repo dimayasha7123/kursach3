@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:13.3
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres7123
+      - POSTGRES_DB=active_citizen
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+  migration:
+   build:
+     context: ./migrations
+     dockerfile: Dockerfile
+   depends_on:
+     - db
+   links:
+     - db
+  api:
+    container_name: ac-api
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+    links:
+      - db
+volumes:
+  db:
+    driver: local

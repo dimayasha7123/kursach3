@@ -1,9 +1,8 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify, current_app
+    Blueprint, request, jsonify, current_app
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 from flaskr.db import get_db
 from flaskr.model.model import get_model
 
@@ -96,9 +95,9 @@ def complement(id: int):
     content = request.get_json()
     if not content:
         return jsonify(ok=False, error="empty request")
-    if not all(key in content for key in ['detailed_text']):
+    if not all(key in content for key in ['text']):
         return jsonify(ok=False, error="bad request")
-    det_text = content["detailed_text"]
+    det_text = content["text"]
 
     query = """
     select * from appeal where id = %s;

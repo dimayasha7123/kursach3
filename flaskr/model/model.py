@@ -1,6 +1,4 @@
-from tkinter.messagebox import NO
 import joblib
-import psycopg2
 
 model = None
 
