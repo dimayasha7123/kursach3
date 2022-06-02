@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flaskr.db import get_db
 from flaskr.model.model import get_model
 
-bp = Blueprint('appeal', __name__, url_prefix='/api/v1/appeal')
+bp = Blueprint('appeal', __name__, url_prefix='/api/v1.1/appeal')
 
 
 @bp.route('/<int:id>', methods=["GET"])
@@ -53,7 +53,7 @@ def get(id: int):
     )
 
 
-@bp.route('/create', methods=["POST"])
+@bp.route('/', methods=["POST"])
 def create():
     content = request.get_json()
     if not content:
@@ -91,7 +91,7 @@ def create():
     return get(id)
 
 
-@bp.route('/<int:id>/complement', methods=["PUT"])
+@bp.route('/<int:id>', methods=["PUT"])
 def complement(id: int):
     content = request.get_json()
     if not content:
@@ -176,7 +176,7 @@ def commit(id: int, theme_id: int):
     return get(id)
 
 
-@bp.route('/<int:id>/get_categories', methods=["GET"])
+@bp.route('/<int:id>/categories', methods=["GET"])
 def get_categories(id: int):
     db = get_db()
     cur = db.cursor()
@@ -213,7 +213,7 @@ def get_categories(id: int):
     return jsonify(ok=True, id=id, text=appeal_text, categories=resp)
 
 
-@bp.route('/<int:id>/get_themes/<int:cat_id>', methods=["GET"])
+@bp.route('/<int:id>/themes/<int:cat_id>', methods=["GET"])
 def get_themes(id: int, cat_id: int):
     db = get_db()
     cur = db.cursor()
