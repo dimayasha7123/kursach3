@@ -18,9 +18,13 @@
 
 Пока аутентификации нет.
 
+## Префикс всех запросов
+
+/api/v1.1/appeal
+
 ## Обращение
 
-Примерно вот так выглядит json с обращением:
+Так выглядит json с обращением:
 
 ```
 {
@@ -54,7 +58,7 @@
 * **text** - string, текст обращения
 * **detailed_text** - string, более подробный текст обращения, если обращение было дополнено
 * **category** - string, категория обращения, если обращение было закоммичено (подтверждено)
-* **theme** - string, тема обращения, если обращение было закоммичено
+* **theme** - string, тема обращения, если обращение было зафиксировано
 * **predicted_themes** - массив тем, которые определила система в порядке убывания вероятности (сначала самые вероятные)
     * **id** - int, id темы в системе
     * **title** - string, сам заголовок темы
@@ -69,7 +73,7 @@
 
 method: GET
 
-request: */api/v1/appeal/{id}*
+request: */{id}*
 
 **id** - id обращения
 
@@ -83,7 +87,7 @@ response: обращение (см. выше)
 
 method: POST
 
-request: */api/v1/create*
+request: */*
 
 body: json следующего формата
 ```
@@ -100,14 +104,14 @@ response: обращение (см. выше)
 
 method: PUT
 
-request: */api/v1/appeal/{id}/complement*
+request: */{id}*
 
 **id** - id обращения
 
 body: json следующего формата
 ```
 {
-    "detailed_text": "Яма близ пешеходного перехода около Пироговки"
+    "text": "Яма близ пешеходного перехода около Пироговки"
 }
 ```
 
@@ -119,7 +123,7 @@ response: обращение (см. выше)
 
 method: PUT
 
-request: */api/v1/appeal/{id}/commit/{theme_id}*
+request: */{id}/commit/{theme_id}*
 
 **id** - id обращения
 
@@ -133,7 +137,7 @@ response: обращение (см. выше)
 
 method: GET
 
-request: */api/v1/appeal/{id}/get_categories*
+request: */{id}/categories*
 
 **id** - id обращения
 
@@ -179,7 +183,7 @@ response: json следующего формата
 
 method: GET
 
-request: */api/v1/appeal/{id}/get_themes/{cat_id}*
+request: */{id}/themes/{cat_id}*
 
 **id** - id обращения
 
